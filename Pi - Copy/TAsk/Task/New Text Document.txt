@@ -1,0 +1,18 @@
+simple takeoff in guided nope
+simple takeoff in guidednogps
+simple takeoff in position hold
+send ned velocity in guidednogps
+send ned velocity in position hold
+set attitude in position hold
+set attitude in position hold
+put gps
+loiter
+land(using optical flow)
+pid with optical flow enable for roll,pitch altitude
+using yellow square
+arming in guidednogps and takeoff in position hold
+
+attitude values from position hold mode
+goto_position_target_local_ned(north, east, down):
+print "Local Location: %s" % vehicle.location.local_frame    #NED
+ 
