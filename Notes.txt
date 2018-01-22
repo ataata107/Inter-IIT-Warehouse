@@ -1,0 +1,271 @@
+	Day 1
+The devices and comptuers connected to the Internet use a protocol called TCP/IP to communicate with each other.
+When a computer in New York wants to send a piece of data to a computer in England, it must know the destination IP address that it woud like to send the information to.
+That information is sent most often via two methods, UDP and TCP.
+
+TCP stands for Transmission Control Protocol. Using this method, the computer sending the data connects directly to the computer it is sending the data it to, 
+and stays connected for the duration of the transfer.
+
+UDP stands for User Datagram Protocol. Using this method, the computer sending the data packages the information into a nice little package and releases it
+into the network with the hopes that it will get to the right place.
+
+Firstly we have to connect rasberry pi to the vehicle(pixhawk) using udp // connecting to a vehicle
+vehicle = connect('127.0.0.1:14550', wait_ready=True) //* rasberry pi connects to the pixhawk and automatically vehicle object is created using connect class
+
+Using this class we can get information about the vehicle and the parameters like altitude gps battery etc.//* Vehicle state and settings
+print "Battery: %s" % vehicle.battery  // through MAVLINK which is a communication protocol rasberry pi requests info from pixhawk whose values are regularly updated
+
+We can also set some attributes of the pixhawk which it will execute 
+#disarm the vehicle
+Vehicle.armed = False
+#set the default groundspeed to be used in movement commands
+vehicle.groundspeed = 3.2
+Commands to change a value are not guaranteed to succeed (or even to be received) and code should be written with this in mind  ex
+vehicle.mode = VehicleMode("GUIDED")
+vehicle.armed = True
+while not vehicle.mode.name=='GUIDED' and not vehicle.armed and not api.exit:
+    print " Getting ready to take off ..."
+    time.sleep(1)
+
+Parameters
+Vehicle parameters provide the information used to configure the autopilot for the vehicle-specific hardware/capabilities.
+print "Param: %s" % vehicle.parameters['THR_MIN'] this will print the minimum PWM setting for the throttle at which the motors will keep spinning.
+# Change the parameter value (Copter, Rover) we can also change the parameter values
+vehicle.parameters['THR_MIN']=100
+
+Dronekit sitl is pixhawk simulation without the need of real pixhawk
+The following code enables pi to the simulation of the properties of pixhawk without the need of real pixhawk
+print "Start simulator (SITL)"
+import dronekit_sitl
+sitl = dronekit_sitl.start_default()
+connection_string = sitl.connection_string()
+
+# Import DroneKit-Python
+from dronekit import connect, VehicleMode
+
+# Connect to the Vehicle.
+print("Connecting to vehicle on: %s" % (connection_string,))
+vehicle = connect(connection_string, wait_ready=True)
+
+# Get some vehicle attributes (state)
+print "Get some vehicle attribute values:"
+print " GPS: %s" % vehicle.gps_0
+print " Battery: %s" % vehicle.battery
+print " Last Heartbeat: %s" % vehicle.last_heartbeat
+print " Is Armable?: %s" % vehicle.is_armable
+print " System status: %s" % vehicle.system_status.state
+print " Mode: %s" % vehicle.mode.name    # settable
+
+# Close vehicle object before exiting script
+vehicle.close()
+
+# Shut down simulator
+sitl.stop()
+print("Completed")
+
+Simulator is run on the same computer pi in this case 
+
+
+Taking off
+takeoff is the simulation code that takes the coptor to a height of 20 metres approx
+Modes of the vehicle and understand why the vehicle be started in guided mode
+
+https://www.youtube.com/watch?v=CfQ-9MIHKkU // for connecting pixhawk and esc
+Stabilize Mode
+Keeps the quadcopter level but it still can yaw and level is decided by pilot
+Altitude hold
+It is used for maintaining the height using the help of barometers
+Loiter
+The copter maintains the current position, heading and height. Pilot controls the position
+Return to launch mode
+Auto
+It enables the quad to go to the waypoints pre determined in the mission planner using gps
+Acro
+Quad maintains height and manual throttle commands are needed
+Drift
+Yaw is fixed
+Guided
+Allows for control of the craft by clicking on a map Quadcopter should be directly connected to mission plannes
+https://www.youtube.com/watch?v=7QDb2SuUVsw
+
+Day 2
+mavproxy.py --master tcp:127.0.0.1:5760 --out=udp:103.37.201.27:14550 --out=udp:192.168.117.225:14550
+mavproxy.py --master tcp:127.0.0.1:5760 --out=udp:127.0.0.1:14551 --out=udp:192.168.0.106:14550
+dronekit-sitl copter
+Ipv4 adress is your pc ip address
+python takeoff1.py --connect udp:127.0.0.1:14551
+cd ..
+e:
+
+Day 3
+Power Module 
+Provides a stable 5.37V and 2.25Amp power supply which reduces the chances of a brown-out
+Allows monitoring of the battery’s voltage and current and triggering a return-to-launch when the voltage becomes low or the total power consumed during the flight approaches the battery’s capacity
+The PM accepts a maximum input voltage of 18V (up to 4S Lipo battery) and maximum current of 90Amps.
+When used with an APM the full 90Amp current sensing range can be used, with the PX4/Pixhawks up to 60Amps can be measured.
+https://www.amazon.in/SunRobotics-Connector-ARDUPILOT-Pixhawk-Controller/dp/B0732WMFXH/ref=cm_cr_arp_d_product_top?ie=UTF8 //power module
+
+Copter is usually started in guided mode. When the function returns the app can continue in GUIDED mode or switch to AUTO mode to start a mission.
+Python script can be programmed to be directly connected to the simulator or to the mission planner but not both
+GUIDED mode is the recommended mode for flying Copter autonomously without a predefined a mission. 
+It allows a Ground Control Station (GCS) or Companion Computer to control the vehicle “on the fly” and react to new events or situations as they occur.
+
+
+SITL connected to the vehicle via UDP	127.0.0.1:14550
+SITL connected to the vehicle via TCP	tcp:127.0.0.1:5760
+
+Dronekit
+Guiding and controlling copter
+a_location = LocationGlobalRelative(-34.364114, 149.166022, 30)
+vehicle.simple_goto(a_location) // makes the vehicle go to the specific location
+
+Day4
+simulating with edison
+01001010 00001111  The low order byte is 00001111
+>>> 1<<2 //converts to binary shifts and then converts bact to decimal
+4
+>>> 1<<3
+8
+>>> 11<<1
+22
+>>> 11<<2
+44
+>>> bin(0xABC123EFFF )
+'0b1010101111000001001000111110111111111111'
+>>> bin(20)
+'0b10100'
+>>> bin(11)
+'0b1011'
+>>> hex(0b1011)
+'0xb'
+>>> 0b11<<1
+6
+>>> bin(0b11<<1)
+'0b110'
+>>> bin(0b11<<9)
+'0b11000000000'
+>>> bin(0b110000<<9)
+'0b110000000000000'
+>>> bin(0b110001<<9)
+'0b110001000000000'
+a=0x03
+>>> b=0xE8
+>>> a
+3
+>>> b
+232
+>>> a<<8|b
+1000
+
+
+DAy5
+Configuring pi for mavproxy
+sudo apt-get update    #Update the list of packages in the software center
+sudo apt-get install screen python-wxgtk2.8 python-matplotlib python-opencv python-pip python-numpy python-dev libxml2-dev libxslt-dev
+sudo pip install future
+sudo pip install pymavlink
+sudo pip install mavproxy
+
+Day6
+SERIAL2_PROTOCOL = 1 (the default) to enable MAVLink on the serial port.
+SERIAL2_BAUD = 921 so the Pixhawk can communicate with the RPi at 921600 baud.
+LOG_BACKEND_TYPE = 3 if you are using APSync to stream the dataflash log files to the RPi
+sudo raspi-config
+And then “Serial” to disable OS use of the serial connection:
+sudo -s
+mavproxy.py --master=/dev/ttyAMA0 --baudrate 921600 --aircraft MyCopter
+param show ARMING_CHECK
+param set ARMING_CHECK 0
+arm throttle
+
+The Pixhawk will respond to MAVLink commands received through Telemetry 1 and Telemetry 2 ports (see image at top of this page) meaning that both the RPi and the regular ground station (i.e. Mission planner, etc) can be connected. In addition it is possible to connect the Mission Planner to the MAVProxy application running on the RPi similar to how it is done for SITL.
+
+Primarily this means adding an --out <ipaddress>:14550 to the MAVProxy startup command with the being the address of the PC running the mission planner. On windows the ipconfig can be used to determine that IP address. On the computer used to write this wiki page the MAVProxy command became:
+
+mavproxy.py --master=/dev/ttyAMA0 --baudrate 92100 --out 192.168.208.181:14550 --aircraft MyCopter
+
+Day6
+
+We need mavproxy set up before implementing python code.
+Simulation on pc code in pc
+Simulation on pc code on raspberry pi
+Device really connected on pi
+First two already done
+for last
+mavproxy.py --master=/dev/ttyAMA0 --baudrate 921600 --out 192.168.208.181:14550 --aircraft MyCopter
+python takeoffpi.py --connect 192.168.208.181:14550  (ip of pi)
+in takeoffpi.py connect will be to 192.168.208.181:14550
+dronekit and pixhawk will communicate
+Just mission planner communicating with mavproxy running on pi not working
+px4 firmware rather than APM
+
+
+Day7
+GUIDED mode is the recommended mode for flying Copter autonomously without a predefined a mission. It allows a Ground Control Station (GCS) or Companion Computer to control the vehicle “on the fly” and react to new events or situations as they occur.
+# Set mode to guided - this is optional as the goto method will change the mode if needed.
+vehicle.mode = VehicleMode("GUIDED")
+# Set the target location in global-relative frame
+a_location = LocationGlobalRelative(-34.364114, 149.166022, 30)
+vehicle.simple_goto(a_location)
+# Set airspeed using attribute
+vehicle.airspeed = 5 #m/s
+# Set groundspeed using attribute
+vehicle.groundspeed = 7.5 #m/s
+# Set groundspeed using `simple_goto()` parameter
+vehicle.simple_goto(a_location, groundspeed=10)
+
+
+
+DAy9
+Error flight mode 16 because pos hold is available for higher versions or if gps is not connectes ref#https://discuss.ardupilot.org/t/unable-to-switch-to-pos-hold-mode-with-error-err-flight-mode-16/10985
+
+go to Configuration tab and from Planner menu disable Speech.
+from dronekit import connect
+vehicle=connect('com11',wait_ready=True) #to connect pixhawk connected directly to pc
+Auto Modes are ones that requires GPS i.e. Loiter, Position Hold, Guided, Auto
+** Non-auto modes are Stabilize and Altitude Hold
+ Exception in message handler for HEARTBEAT
+>>> mode 0 not available on mavlink definition #check if mission planner is connected to pix
+https://github.com/dronekit/dronekit-python/blob/master/docs/guide/taking_off.rst
+
+192.168.12.233
+mavproxy.py --master=/dev/ttyAMA0 --baudrate 57600 --out 192.168.137.1:14550 --aircraft MyCopter #connecting with mission planner
+
+
+mavproxy.py --master tcp:127.0.0.1:5760 --out=udp:127.0.0.1:14551 --out=udp:192.168.1.104:14550 code on pc connect will be to 192.168... simulator
+
+ 
+ mavproxy.py --master=/dev/ttyS0 --baudrate 921600 --out 192.168.43.64:14550 --out 192.168.43.175:14550 --aircraft MyCopter
+
+
+python edited.py --connect 192.168.43.64:14550
+python edited_edit4.py --connect 192.168.43.135:14550
+
+
+mavproxy.py --master=com11 --out 192.168.43.175:14550 --out 127.0.0.1:14551 --aircraft MyCopter
+current_altitude = vehicle.rangefinder.distance #rangefinder distance
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ mavproxy.py --master=/dev/ttyS0 --baudrate 921600 --out 192.168.43.135:14550 --out 192.168.43.175:14550 --aircraft MyCopter
+
+
+
+
+
+
+
+
+
+
